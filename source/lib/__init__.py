@@ -57,7 +57,7 @@ def check_for_meta(content, url):
     result = soup.find("meta")
     if result and 'content' in result.attrs:
         for attr, value in result.attrs.items():
-            if attr == 'http-equiv' and value.lower() == 'refresh':
+            if attr.lower() == 'http-equiv' and value.lower() == 'refresh':
                 splitted = result['content'].split(";")
                 if len(splitted) != 2:
                     return
@@ -191,7 +191,7 @@ def prepare_url(url):
     try:
         netloc = netloc.encode('idna')
     except UnicodeError:
-        pass
+        raise
     path = quote(to_str(path, 'ignore'), safe='/%+$!*\'(),')
     qs = quote_plus(to_str(qs, 'ignore'), safe=':&%=+$!*\'(),')
     return urlunparse((scheme, netloc, path, qs, anchor, fragments))
