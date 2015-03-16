@@ -81,6 +81,7 @@ def make_pycurl_request(url, timeout, useragent=None):
 
     """
     prepared_url = to_str(prepare_url(url), 'ignore')
+    print(prepared_url)
     buff = StringIO()
     curl = pycurl.Curl()
     curl.setopt(curl.URL, prepared_url)
@@ -92,7 +93,9 @@ def make_pycurl_request(url, timeout, useragent=None):
     curl.setopt(curl.TIMEOUT, timeout)
     curl.perform()
     content = buff.getvalue()
+    print(content)
     redirect_url = curl.getinfo(curl.REDIRECT_URL)
+    print(redirect_url)
     curl.close()
     if redirect_url is not None:
         redirect_url = to_unicode(redirect_url, 'ignore')
