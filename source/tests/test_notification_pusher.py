@@ -1,6 +1,6 @@
 import unittest
 import mock
-from notification_pusher import create_pidfile
+from source.notification_pusher import create_pidfile
 
 
 class NotificationPusherTestCase(unittest.TestCase):

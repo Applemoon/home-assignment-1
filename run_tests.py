@@ -9,8 +9,9 @@ from contextlib import contextmanager
 source_dir = os.path.join(os.path.dirname(__file__), 'source')
 sys.path.insert(0, source_dir)
 
-from tests.test_notification_pusher import NotificationPusherTestCase
-from tests.test_redirect_checker import RedirectCheckerTestCase
+from source.tests.test_notification_pusher import NotificationPusherTestCase
+from source.tests.test_redirect_checker import RedirectCheckerTestCase
+
 
 @contextmanager
 def mocked_connection():
