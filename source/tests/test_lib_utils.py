@@ -3,7 +3,7 @@ import mock
 from source.lib import utils
 
 
-class LibUtilsCreatePidfileTestCase(unittest.TestCase):
+class LibUtilsTestCase(unittest.TestCase):
     def test_create_pidfile(self):
         pid = 42
         pidfile = '/file/path'

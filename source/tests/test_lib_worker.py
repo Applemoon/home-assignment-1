@@ -3,7 +3,7 @@ import mock
 from source.lib import worker
 
 
-class LibWorkerWorkerTestCase(unittest.TestCase):
+class LibWorkerTestCase(unittest.TestCase):
     def test_worker_dead_parent(self):
         config = mock.MagicMock()
         parent_pid = 42
