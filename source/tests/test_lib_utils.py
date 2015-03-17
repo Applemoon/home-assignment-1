@@ -67,7 +67,7 @@ class LibUtilsTestCase(unittest.TestCase):
     def test_load_config_from_pyfile(self):
         filepath = 'filepath/'
 
-        def execfile(filepath, variables):
+        def execfile(sefilepath, variables):
             variables['UPPER'] = {'key1': 1, 'key2': 'value2'}
             variables['lower'] = 42
 
@@ -94,7 +94,6 @@ class LibUtilsTestCase(unittest.TestCase):
         self.assertTrue(parsed_args.config == cfg)
         self.assertTrue(parsed_args.pidfile == pidfile)
         self.assertFalse(parsed_args.daemon)
-
 
     def test_get_tube(self):
         host = 'localhost'

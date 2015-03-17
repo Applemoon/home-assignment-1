@@ -14,6 +14,9 @@ class LibInitTestCase(unittest.TestCase):
     def side_effect(self):
         return self
 
+    def to_code_side_effect(self, ignore):
+        return self
+
     def test_check_for_meta__meta_skip(self):
         content = """<nothing>"""
         self.assertEquals(None, lib.check_for_meta(content, 'http://first.com/'))
@@ -38,12 +41,12 @@ class LibInitTestCase(unittest.TestCase):
         content = """<meta Http-equiv="Refresh" content="5; url is %$!@*">"""
         self.assertEquals(None, lib.check_for_meta(content, 'http://first.com/'))
 
+    @mock.patch('source.lib.to_unicode', mock.Mock(side_effect=to_code_side_effect))
     def test_check_for_meta__ok(self):
         this_url = 'http://url.ru'
         redirect_url = 'http://redirect-url.ru'
         content = """<meta http-equiv="refresh" content="5; url=""" + redirect_url + """">"""
-        with mock.patch('source.lib.to_unicode', mock.Mock(return_value=redirect_url)):
-            self.assertEquals(lib.urljoin(this_url, redirect_url), lib.check_for_meta(content, this_url))
+        self.assertEquals(lib.urljoin(this_url, redirect_url), lib.check_for_meta(content, this_url))
 
     def test_fix_market_url__ok_market_url(self):
         market_url = 'market://bestOfTheBestUrl'
@@ -244,29 +247,29 @@ class LibInitTestCase(unittest.TestCase):
         self.assertEquals('ERROR', redirect_type)
         self.assertEquals(None, return_content)
 
+    @mock.patch('source.lib.to_str', mock.Mock(side_effect=to_code_side_effect))
     def test_make_pycurl_request__redirect_url(self):
         buff = mock.Mock()
         buff.getvalue = mock.Mock(return_value='content')
         curl = mock.Mock()
         redirect_url = 'http://redirect-url.ru'
         curl.getinfo = mock.Mock(return_value=redirect_url)
-        with mock.patch('source.lib.to_str', mock.Mock(return_value=URL)):
-            with mock.patch('source.lib.StringIO', mock.Mock(return_value=buff)):
-                with mock.patch('pycurl.Curl', mock.Mock(return_value=curl)):
-                    self.assertEquals(('content', redirect_url), lib.make_pycurl_request(URL, TIMEOUT))
-                    self.assertEquals(('content', redirect_url), lib.make_pycurl_request(URL, TIMEOUT, 'useragent'))
+        with mock.patch('source.lib.StringIO', mock.Mock(return_value=buff)):
+            with mock.patch('pycurl.Curl', mock.Mock(return_value=curl)):
+                self.assertEquals(('content', redirect_url), lib.make_pycurl_request(URL, TIMEOUT))
+                self.assertEquals(('content', redirect_url), lib.make_pycurl_request(URL, TIMEOUT, 'useragent'))
 
+    @mock.patch('source.lib.to_str', mock.Mock(side_effect=to_code_side_effect))
     def test_make_pycurl_request__redirect_url_none(self):
         url_none = None
         buff = mock.Mock()
         buff.getvalue = mock.Mock(return_value='content')
         curl = mock.Mock()
         curl.getinfo = mock.Mock(return_value=url_none)
-        with mock.patch('source.lib.to_str', mock.Mock(return_value=URL)):
-            with mock.patch('source.lib.StringIO', mock.Mock(return_value=buff)):
-                with mock.patch('pycurl.Curl', mock.Mock(return_value=curl)):
-                    self.assertEquals(('content', url_none), lib.make_pycurl_request(URL, TIMEOUT))
-                    self.assertEquals(('content', url_none), lib.make_pycurl_request(URL, TIMEOUT, 'useragent'))
+        with mock.patch('source.lib.StringIO', mock.Mock(return_value=buff)):
+            with mock.patch('pycurl.Curl', mock.Mock(return_value=curl)):
+                self.assertEquals(('content', url_none), lib.make_pycurl_request(URL, TIMEOUT))
+                self.assertEquals(('content', url_none), lib.make_pycurl_request(URL, TIMEOUT, 'useragent'))
 
     def test_prepare_url__none_url(self):
         none_url = None
