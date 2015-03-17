@@ -51,7 +51,6 @@ def load_config_from_pyfile(filepath):
     cfg = Config()
 
     variables = {}
-
     execfile(filepath, variables)
 
     for key, value in variables.iteritems():
