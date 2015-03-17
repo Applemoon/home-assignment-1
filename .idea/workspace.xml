@@ -2,31 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="77ab43a1-1b66-4b80-bb1a-0c7950a9c7fc" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/source/tests/test_lib__init.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/source/tests/test_lib_utils.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/source/tests/test_lib_worker.py" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib__init/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib__init/test_check_for_meta.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib__init/test_fix_market_url.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib__init/test_get_counters.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib__init/test_get_redirect_history.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib__init/test_get_url.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib__init/test_make_pycurl_request.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib__init/test_prepare_url.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib__init/test_to_code.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib_utils/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib_utils/test_check_network_status.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib_utils/test_create_pidfile.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib_utils/test_daemonize.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib_utils/test_get_tube.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib_utils/test_load_config_from_pyfile.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib_utils/test_parse_cmd_args.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib_utils/test_spawn_workers.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib_worker/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib_worker/test_get_redirect_history_from_task.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/source/tests/test_lib_worker/test_worker.py" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/source/lib/__init__.py" afterPath="$PROJECT_DIR$/source/lib/__init__.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/run_tests.py" afterPath="$PROJECT_DIR$/run_tests.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/source/tests/test_lib__init.py" afterPath="$PROJECT_DIR$/source/tests/test_lib__init.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="home-assignment-1.iws" />
@@ -42,7 +18,7 @@
   <component name="ChangesViewManager" flattened_view="true" show_ignored="false" />
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/home-assignment-1$Unittests_in_test_lib__init.coverage" NAME="Unittests in test_lib__init Coverage Results" MODIFIED="1426434524920" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/source/tests" />
-    <SUITE FILE_PATH="coverage/home-assignment-1$run_tests.coverage" NAME="run_tests Coverage Results" MODIFIED="1426577775458" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/home-assignment-1$run_tests.coverage" NAME="run_tests Coverage Results" MODIFIED="1426579619394" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
@@ -56,11 +32,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/source/lib/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.26269317" vertical-offset="929" max-vertical-offset="3690">
-              <caret line="45" column="46" selection-start-line="45" selection-start-column="46" selection-end-line="45" selection-end-column="46" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="227" max-vertical-offset="3690">
+              <caret line="60" column="18" selection-start-line="60" selection-start-column="18" selection-end-line="60" selection-end-column="18" />
               <folding>
                 <element signature="e#16#45#0" expanded="true" />
               </folding>
@@ -71,11 +47,21 @@
       <file leaf-file-name="test_lib__init.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/source/tests/test_lib__init.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="5109" max-vertical-offset="5562">
-              <caret line="298" column="0" selection-start-line="298" selection-start-column="0" selection-end-line="298" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="5562">
+              <caret line="14" column="19" selection-start-line="14" selection-start-column="19" selection-end-line="14" selection-end-column="19" />
               <folding>
                 <element signature="e#0#15#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.20408164" vertical-offset="0" max-vertical-offset="441">
+              <caret line="5" column="6" selection-start-line="5" selection-start-column="6" selection-end-line="5" selection-end-column="6" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -107,7 +93,7 @@
       <file leaf-file-name="redirect_checker.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/source/redirect_checker.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="234" max-vertical-offset="1080">
+            <state vertical-scroll-proportion="0.0" vertical-offset="612" max-vertical-offset="1080">
               <caret line="23" column="1" selection-start-line="23" selection-start-column="1" selection-end-line="23" selection-end-column="1" />
               <folding />
             </state>
@@ -117,8 +103,8 @@
       <file leaf-file-name="test_redirect_checker.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/source/tests/test_redirect_checker.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="486" max-vertical-offset="1116">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1152">
+              <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="28" />
               <folding />
             </state>
           </provider>
@@ -175,11 +161,11 @@
         <option value="$PROJECT_DIR$/source/tests/test_lib__init/test_get_redirect_history.py" />
         <option value="$PROJECT_DIR$/source/lib/__init__.py" />
         <option value="$PROJECT_DIR$/source/tests/test_lib__init/test_get_counters.py" />
-        <option value="$PROJECT_DIR$/source/tests/test_lib__init.py" />
         <option value="$PROJECT_DIR$/source/tests/test_lib_worker/test_worker.py" />
         <option value="$PROJECT_DIR$/source/tests/test_lib_worker.py" />
         <option value="$PROJECT_DIR$/source/tests/test_lib_utils.py" />
         <option value="$PROJECT_DIR$/run_tests.py" />
+        <option value="$PROJECT_DIR$/source/tests/test_lib__init.py" />
       </list>
     </option>
   </component>
@@ -590,7 +576,7 @@
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.26080477" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Coverage" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.09684858" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
+      <window_info id="Coverage" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.057647962" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.27901614" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -797,28 +783,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-3.6" vertical-offset="0" max-vertical-offset="198">
-          <caret line="5" column="6" selection-start-line="5" selection-start-column="6" selection-end-line="5" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/run_tests.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="231" max-vertical-offset="720">
           <caret line="29" column="47" selection-start-line="29" selection-start-column="47" selection-end-line="29" selection-end-column="47" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/source/tests/test_lib__init.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="5109" max-vertical-offset="5562">
-          <caret line="298" column="0" selection-start-line="298" selection-start-column="0" selection-end-line="298" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#15#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -832,12 +801,20 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/source/tests/test_lib_worker.py">
+    <entry file="file://$PROJECT_DIR$/source/lib/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="414">
-          <caret line="6" column="4" selection-start-line="6" selection-start-column="4" selection-end-line="6" selection-end-column="4" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="540" max-vertical-offset="2322">
+          <caret line="51" column="0" selection-start-line="51" selection-start-column="0" selection-end-line="51" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/lib/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="227" max-vertical-offset="3690">
+          <caret line="60" column="18" selection-start-line="60" selection-start-column="18" selection-end-line="60" selection-end-column="18" />
           <folding>
-            <element signature="e#0#15#0" expanded="true" />
+            <element signature="e#16#45#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -850,29 +827,39 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/source/tests/test_lib_worker.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="414">
+          <caret line="6" column="4" selection-start-line="6" selection-start-column="4" selection-end-line="6" selection-end-column="4" />
+          <folding>
+            <element signature="e#0#15#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/source/tests/test_redirect_checker.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="486" max-vertical-offset="1116">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1152">
+          <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="28" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/source/lib/utils.py">
+    <entry file="file://$PROJECT_DIR$/source/tests/test_lib__init.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="540" max-vertical-offset="2322">
-          <caret line="51" column="0" selection-start-line="51" selection-start-column="0" selection-end-line="51" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/source/lib/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.26269317" vertical-offset="929" max-vertical-offset="3690">
-          <caret line="45" column="46" selection-start-line="45" selection-start-column="46" selection-end-line="45" selection-end-column="46" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="5562">
+          <caret line="14" column="19" selection-start-line="14" selection-start-column="19" selection-end-line="14" selection-end-column="19" />
           <folding>
-            <element signature="e#16#45#0" expanded="true" />
+            <element signature="e#0#15#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.20408164" vertical-offset="0" max-vertical-offset="441">
+          <caret line="5" column="6" selection-start-line="5" selection-start-column="6" selection-end-line="5" selection-end-column="6" />
+          <folding />
         </state>
       </provider>
     </entry>
