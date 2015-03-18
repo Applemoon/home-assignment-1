@@ -5,34 +5,34 @@ from redirect_checker import main_loop, main
 
 class RedirectCheckerTestCase(unittest.TestCase):
 
-    def run_main_loop(self, worker_pool_size, mock_spawn_workers, expected_spawns_count):
-        sleep = Mock(side_effect=KeyboardInterrupt)
-
+    def run_main_loop(self, worker_pool_size):
         config = Mock(WORKER_POOL_SIZE=worker_pool_size, SLEEP=0)
+        sleep = Mock(side_effect=KeyboardInterrupt)
 
         with patch('redirect_checker.sleep', sleep):
             with self.assertRaises(KeyboardInterrupt):
                 main_loop(config)
 
-        self.assertEqual(len(mock_spawn_workers.mock_calls), expected_spawns_count)
-
     @patch('redirect_checker.spawn_workers')
     @patch('redirect_checker.check_network_status')
     def test_main_loop_ok_network(self, mock_check_network_status, mock_spawn_workers):
         mock_check_network_status.return_value = True
-        self.run_main_loop(3, mock_spawn_workers, 1)
+        self.run_main_loop(3)
+        self.assertTrue(mock_spawn_workers.called)
 
     @patch('redirect_checker.spawn_workers')
     @patch('redirect_checker.check_network_status')
     def test_main_loop_ok_network_no_spawning(self, mock_check_network_status, mock_spawn_workers):
         mock_check_network_status.return_value = True
-        self.run_main_loop(0, mock_spawn_workers, 0)
+        self.run_main_loop(0)
+        self.assertFalse(mock_spawn_workers.called)
 
     @patch('redirect_checker.spawn_workers')
     @patch('redirect_checker.check_network_status')
     def test_main_loop_network_not_ok(self, mock_check_network_status, mock_spawn_workers):
         mock_check_network_status.return_value = False
-        self.run_main_loop(3, mock_spawn_workers, 0)
+        self.run_main_loop(3)
+        self.assertFalse(mock_spawn_workers.called)
 
     @patch('redirect_checker.main_loop')
     @patch('redirect_checker.dictConfig')
@@ -56,3 +56,6 @@ class RedirectCheckerTestCase(unittest.TestCase):
         self.assertTrue(mock_daemonize.called)
         self.assertTrue(mock_create_pidfile.called)
         self.assertEqual(main_result, exit_code)
+
+        self.assertTrue(mock_dictConfig.called)
+        self.assertTrue(mock_dictConfig.called)

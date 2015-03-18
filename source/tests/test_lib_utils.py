@@ -60,9 +60,9 @@ class LibUtilsTestCase(unittest.TestCase):
                 with mock.patch('os._exit', mock.Mock()) as os_exit:
                     utils.daemonize()
 
-                    self.assertEquals(1, os_fork.call_count == 2)
+                    self.assertTrue(os_fork.call_count == 2)
                     os_setsid.assert_called_once_with()
-                    self.assertEquals(1, os_exit.call_count == 0)
+                    self.assertTrue(os_exit.call_count == 0)
 
     def test_load_config_from_pyfile(self):
         filepath = 'filepath/'
@@ -74,16 +74,16 @@ class LibUtilsTestCase(unittest.TestCase):
         with mock.patch('__builtin__.execfile', side_effect=execfile):
             cfg = utils.load_config_from_pyfile(filepath)
 
-            self.assertEqual(cfg.UPPER, {'key1': 1, 'key2': 'value2'})
-            self.assertEqual(hasattr(cfg, 'lower_case'), False)
+            self.assertEquals(cfg.UPPER, {'key1': 1, 'key2': 'value2'})
+            self.assertEquals(hasattr(cfg, 'lower_case'), False)
 
     def test_parse_cmd_args__abbr(self):
         cfg = '/conf'
         pidfile = '/pidfile'
         app_description = 'app_description'
         parsed_args = utils.parse_cmd_args(['-c', cfg, '-P', pidfile, '-d'], app_description)
-        self.assertTrue(parsed_args.config == cfg)
-        self.assertTrue(parsed_args.pidfile == pidfile)
+        self.assertEquals(parsed_args.config, cfg)
+        self.assertEquals(parsed_args.pidfile, pidfile)
         self.assertTrue(parsed_args.daemon)
 
     def test_parse_cmd_args__full(self):
@@ -91,8 +91,8 @@ class LibUtilsTestCase(unittest.TestCase):
         pidfile = '/pidfile'
         app_description = 'app_description'
         parsed_args = utils.parse_cmd_args(['--config', cfg, '--pid', pidfile], app_description)
-        self.assertTrue(parsed_args.config == cfg)
-        self.assertTrue(parsed_args.pidfile == pidfile)
+        self.assertEquals(parsed_args.config, cfg)
+        self.assertEquals(parsed_args.pidfile, pidfile)
         self.assertFalse(parsed_args.daemon)
 
     def test_get_tube(self):

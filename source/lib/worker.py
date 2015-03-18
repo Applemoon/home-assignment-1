@@ -69,7 +69,9 @@ def worker(config, parent_pid):
 
     # run while parent is alive
     while os.path.exists(parent_proc):
+        print ("step")
         task = input_tube.take(config.QUEUE_TAKE_TIMEOUT)
+        print(task)
         if task:
             logger.info(u'Starting task id={}.'.format(task.task_id))
             result = get_redirect_history_from_task(
