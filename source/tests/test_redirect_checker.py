@@ -43,19 +43,13 @@ class RedirectCheckerTestCase(unittest.TestCase):
                                            mock_load_config_from_pyfile, mock_dictConfig, mock_main_loop):
         exit_code = 42
         mock_load_config_from_pyfile.return_value = Mock(LOGGING={}, EXIT_CODE=exit_code)
-        args = ['1', '-c', '/conf_path']
-        main_result = main(args)
-
-        self.assertFalse(mock_daemonize.called)
-        self.assertFalse(mock_create_pidfile.called)
-        self.assertEqual(main_result, exit_code)
-
         args = ['1', '-c', '/conf_path', '-d', '-P', '/pidfile']
+
         main_result = main(args)
 
-        self.assertTrue(mock_daemonize.called)
-        self.assertTrue(mock_create_pidfile.called)
+        self.assertEqual(mock_daemonize.call_count, 1)
+        self.assertEqual(mock_create_pidfile.call_count, 1)
+        self.assertEqual(mock_dictConfig.call_count, 1)
+        self.assertEqual(mock_main_loop.call_count, 1)
         self.assertEqual(main_result, exit_code)
 
-        self.assertTrue(mock_dictConfig.called)
-        self.assertTrue(mock_dictConfig.called)
