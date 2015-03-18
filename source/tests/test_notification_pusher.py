@@ -104,18 +104,80 @@ class NotificationPusherTestCase(unittest.TestCase):
                     main_loop(config)
         # TODO asserts
 
+    def test_parse_cmd_args__abbr(self):
+        cfg = '/conf'
+        pidfile = '/pidfile'
+        parsed_args = parse_cmd_args(['-c', cfg, '-P', pidfile, '-d'])
+        self.assertEquals(parsed_args.config, cfg)
+        self.assertEquals(parsed_args.pidfile, pidfile)
+        self.assertTrue(parsed_args.daemon)
 
-    def test_parse_cmd_args(self):
-        # TODO
-        pass
+    def test_parse_cmd_args__full(self):
+        cfg = '/conf'
+        pidfile = '/pidfile'
+        parsed_args = parse_cmd_args(['--config', cfg, '--pid', pidfile])
+        self.assertEquals(parsed_args.config, cfg)
+        self.assertEquals(parsed_args.pidfile, pidfile)
+        self.assertFalse(parsed_args.daemon)
 
-    def test_daemonize(self):
-        # TODO
-        pass
+    def test_daemonize_ok(self):
+        pid = 42
+        with patch('os.fork', Mock(return_value=pid)) as os_fork:
+            with patch('os._exit', Mock()) as os_exit:
+                daemonize()
+
+        os_fork.assert_called_once_with()
+        os_exit.assert_called_once_with(0)
+
+    def test_daemonize_exception(self):
+        pid = OSError("err")
+        with patch('os.fork', Mock(side_effect=pid)):
+            self.assertRaises(Exception, daemonize)
+
+    def test_daemonize_ok_after_setsid(self):
+        pid = 0
+        fork_pid = 42
+        with patch('os.fork', Mock(side_effect=[pid, fork_pid])) as os_fork:
+            with patch('os.setsid', Mock()) as os_setsid:
+                with patch('os._exit', Mock()) as os_exit:
+                    daemonize()
+
+                    self.assertEquals(1, os_fork.call_count == 2)
+                    os_setsid.assert_called_once_with()
+                    os_exit.assert_called_once_with(0)
+
+    def test_daemonize_exception_after_setsid(self):
+        pid = 0
+        fork_pid = OSError("err")
+        with patch('os.fork', Mock(side_effect=[pid, fork_pid])):
+            with patch('os.setsid', Mock()):
+                with patch('os._exit', Mock()):
+                    self.assertRaises(Exception, daemonize)
+
+    def test_daemonize__not_exit(self):
+        pid = 0
+        fork_pid = 0
+        with patch('os.fork', Mock(side_effect=[pid, fork_pid])) as os_fork:
+            with patch('os.setsid', Mock()) as os_setsid:
+                with patch('os._exit', Mock()) as os_exit:
+                    daemonize()
+
+                    self.assertTrue(os_fork.call_count == 2)
+                    os_setsid.assert_called_once_with()
+                    self.assertTrue(os_exit.call_count == 0)
 
     def test_load_config_from_pyfile(self):
-        # TODO
-        pass
+        filepath = 'filepath/'
+
+        def execfile(sefilepath, variables):
+            variables['UPPER'] = {'key1': 1, 'key2': 'value2'}
+            variables['lower'] = 42
+
+        with patch('__builtin__.execfile', side_effect=execfile):
+            cfg = load_config_from_pyfile(filepath)
+
+            self.assertEquals(cfg.UPPER, {'key1': 1, 'key2': 'value2'})
+            self.assertEquals(hasattr(cfg, 'lower_case'), False)
 
     def test_install_signal_handlers(self):
         # TODO
