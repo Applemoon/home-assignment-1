@@ -1,14 +1,11 @@
-import json
 import requests
 import unittest
-from mock import Mock, patch, mock_open
 import tarantool
 import tarantool_queue
+from mock import Mock, patch, mock_open, MagicMock
 from source import notification_pusher
-from source.notification_pusher import *
 from notification_pusher import *
 from gevent import queue as gevent_queue
-import imp
 
 MAGIC_NUMBER = 42
 
@@ -212,36 +209,62 @@ class NotificationPusherTestCase(unittest.TestCase):
         m_open.assert_called_once_with(pidfile, 'w')
         m_open().write.assert_called_once_with(str(pid))
 
-    def test_main(self):
-        notification_pusher.load_config_from_pyfile = Mock(return_value=Mock(LOGGING={}, EXIT_CODE=exit_code))
-        argv = ['1', '-c', '/conf_path', '-d', '-P', '/pidfile']
-        mock_dict_config = Mock()
-        mock_daemonize = Mock()
-        notification_pusher.daemonize = mock_daemonize
-        mock_create_pidfile = Mock()
-        notification_pusher.create_pidfile = mock_create_pidfile
-        temp_main_loop = notification_pusher.main_loop  # TODO bad, need patch
-        notification_pusher.main_loop = Mock(side_effect=self.app_stop)
-        notification_pusher.patch_all = Mock()
-        notification_pusher.dictConfig = mock_dict_config
-        notification_pusher.install_signal_handlers = Mock()
-        notification_pusher.run_application = True
+    def test_main__ok(self):
 
-        main_result = notification_pusher.main(argv)
+        def stop_loop(self):
+            notification_pusher.run_application = False
 
-        self.assertEqual(mock_daemonize.call_count, 1)
-        self.assertEqual(mock_create_pidfile.call_count, 1)
-        self.assertEqual(main_result, 0)
+        arg = MagicMock()
+        args = MagicMock()
+        config = Config()
+        config.LOGGING = Mock()
+        args.pidfile = Mock()
+        args.config = Mock()
 
-        notification_pusher.main_loop = Mock(side_effect=Exception)
-        notification_pusher.main_loop.sleep = Mock(side_effect=self.app_stop)
-        notification_pusher.run_application = True
+        with patch('source.notification_pusher.main_loop', Mock(side_effect=stop_loop)) as main_loop:
+            with patch('source.notification_pusher.parse_cmd_args', Mock(return_value=args)):
+                with patch('source.notification_pusher.daemonize', Mock()) as daemonize:
+                    with patch('source.notification_pusher.create_pidfile', Mock()) as create_pidfile:
+                        with patch('source.notification_pusher.load_config_from_pyfile', Mock(return_value=config)):
+                            with patch('source.notification_pusher.os.path.realpath', Mock()):
+                                with patch('source.notification_pusher.os.path.realpath', Mock()):
+                                    with patch('source.notification_pusher.os.path.expanduser', Mock()):
+                                        with patch('source.notification_pusher.patch_all', Mock()):
+                                            with patch('source.notification_pusher.dictConfig', Mock()) as dictCond:
+                                                exit_code = notification_pusher.main(arg)
 
-        with self.assertRaises(Exception):
-            main_result = notification_pusher.main(argv)
+        self.assertTrue(daemonize.call_count == 1)
+        self.assertTrue(create_pidfile.call_count == 1)
+        self.assertEquals(notification_pusher.exit_code, exit_code)
 
-        self.assertEqual(mock_daemonize.call_count, 2)
-        self.assertEqual(mock_create_pidfile.call_count, 2)
-        self.assertEqual(main_result, 0)
+    def test_main__exception(self):
 
-        notification_pusher.main_loop = temp_main_loop
+        def break_run(self):
+            notification_pusher.run_application = False
+
+        arg = MagicMock()
+        args = MagicMock()
+        config = Config()
+        config.LOGGING = Mock()
+        config.SLEEP_ON_FAIL = 42
+        args.pidfile = Mock()
+        args.config = Mock()
+
+        with patch('source.notification_pusher.main_loop', Mock(side_effect=Exception)) as main_loop:
+            with patch('source.notification_pusher.parse_cmd_args', Mock(return_value=args)):
+                with patch('source.notification_pusher.daemonize', Mock()) as daemonize:
+                    with patch('source.notification_pusher.create_pidfile', Mock()) as create_pidfile:
+                        with patch('source.notification_pusher.load_config_from_pyfile', Mock(return_value=config)):
+                            with patch('source.notification_pusher.os.path.realpath', Mock()):
+                                with patch('source.notification_pusher.os.path.realpath', Mock()):
+                                    with patch('source.notification_pusher.os.path.expanduser', Mock()):
+                                        with patch('source.notification_pusher.patch_all', Mock()):
+                                            with patch('source.notification_pusher.dictConfig', Mock()) as dictCond:
+                                                 with patch('source.notification_pusher.logger', Mock()):
+                                                      with patch('source.notification_pusher.sleep', Mock(side_effect=break_run)) as sleep:
+                                                          exit_code = notification_pusher.main(arg)
+
+        self.assertTrue(daemonize.call_count == 1)
+        self.assertTrue(create_pidfile.call_count == 1)
+        self.assertTrue(sleep.call_count == 1)
+        self.assertEquals(notification_pusher.exit_code, exit_code)
