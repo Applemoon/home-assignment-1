@@ -18,7 +18,7 @@ class RedirectCheckerTestCase(unittest.TestCase):
     def test_main_loop_ok_network(self, mock_check_network_status, mock_spawn_workers):
         mock_check_network_status.return_value = True
         self.run_main_loop(3)
-        self.assertTrue(mock_spawn_workers.called)
+        self.assertEqual(mock_spawn_workers.call_count, 1)
 
     @patch('redirect_checker.spawn_workers')
     @patch('redirect_checker.check_network_status')
@@ -31,8 +31,18 @@ class RedirectCheckerTestCase(unittest.TestCase):
     @patch('redirect_checker.check_network_status')
     def test_main_loop_network_not_ok(self, mock_check_network_status, mock_spawn_workers):
         mock_check_network_status.return_value = False
-        self.run_main_loop(3)
+
+        config = Mock(WORKER_POOL_SIZE=3, SLEEP=0)
+        sleep = Mock(side_effect=KeyboardInterrupt)
+        child = Mock()
+
+        with patch('redirect_checker.sleep', sleep):
+            with self.assertRaises(KeyboardInterrupt):
+                with patch('redirect_checker.active_children', Mock(return_value=[child])):
+                    main_loop(config)
+
         self.assertFalse(mock_spawn_workers.called)
+        self.assertEqual(child.terminate.call_count, 1)
 
     @patch('redirect_checker.main_loop')
     @patch('redirect_checker.dictConfig')
@@ -40,7 +50,7 @@ class RedirectCheckerTestCase(unittest.TestCase):
     @patch('redirect_checker.create_pidfile')
     @patch('redirect_checker.daemonize')
     def test_main_daemonize_create_pidfile(self, mock_daemonize, mock_create_pidfile,
-                                           mock_load_config_from_pyfile, mock_dictConfig, mock_main_loop):
+                                           mock_load_config_from_pyfile, mock_dict_config, mock_main_loop):
         exit_code = 42
         mock_load_config_from_pyfile.return_value = Mock(LOGGING={}, EXIT_CODE=exit_code)
         args = ['1', '-c', '/conf_path', '-d', '-P', '/pidfile']
@@ -49,7 +59,7 @@ class RedirectCheckerTestCase(unittest.TestCase):
 
         self.assertEqual(mock_daemonize.call_count, 1)
         self.assertEqual(mock_create_pidfile.call_count, 1)
-        self.assertEqual(mock_dictConfig.call_count, 1)
+        self.assertEqual(mock_dict_config.call_count, 1)
         self.assertEqual(mock_main_loop.call_count, 1)
         self.assertEqual(main_result, exit_code)
 
