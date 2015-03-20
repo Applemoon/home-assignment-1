@@ -1,5 +1,5 @@
 import unittest
-from mock import Mock, patch, mock_open, MagicMock
+from mock import Mock, patch, mock_open
 from source.lib.utils import *
 
 
@@ -10,7 +10,7 @@ class LibUtilsTestCase(unittest.TestCase):
         pidfile = '/file/path'
         m_open = mock_open()
         with patch('source.lib.utils.open', m_open, create=True):
-            with patch('os.getpid', Mock(return_value=pid)):
+            with patch('os.getpid', return_value=pid):
                 create_pidfile(pidfile)
 
         m_open.assert_called_once_with(pidfile, 'w')
@@ -18,8 +18,8 @@ class LibUtilsTestCase(unittest.TestCase):
 
     def test_daemonize_ok(self):
         pid = 42
-        with patch('os.fork', Mock(return_value=pid)) as os_fork:
-            with patch('os._exit', Mock()) as os_exit:
+        with patch('os.fork', return_value=pid) as os_fork:
+            with patch('os._exit') as os_exit:
                 daemonize()
 
         os_fork.assert_called_once_with()
@@ -27,15 +27,15 @@ class LibUtilsTestCase(unittest.TestCase):
 
     def test_daemonize_exception(self):
         pid = OSError("err")
-        with patch('os.fork', Mock(side_effect=pid)) as os_fork:
+        with patch('os.fork', side_effect=pid):
             self.assertRaises(Exception, daemonize)
 
     def test_daemonize_ok_after_setsid(self):
         pid = 0
         fork_pid = 42
-        with patch('os.fork', Mock(side_effect=[pid, fork_pid])) as os_fork:
-            with patch('os.setsid', Mock()) as os_setsid:
-                with patch('os._exit', Mock()) as os_exit:
+        with patch('os.fork', side_effect=[pid, fork_pid]) as os_fork:
+            with patch('os.setsid') as os_setsid:
+                with patch('os._exit') as os_exit:
                     daemonize()
 
         self.assertEquals(os_fork.call_count, 2)
@@ -45,9 +45,9 @@ class LibUtilsTestCase(unittest.TestCase):
     def test_daemonize_exception_after_setsid(self):
         pid = 0
         fork_pid = OSError("err")
-        with patch('os.fork', Mock(side_effect=[pid, fork_pid])) as os_fork:
-            with patch('os.setsid', Mock()) as os_setsid:
-                with patch('os._exit', Mock()) as os_exit:
+        with patch('os.fork', side_effect=[pid, fork_pid]) as os_fork:
+            with patch('os.setsid') as os_setsid:
+                with patch('os._exit') as os_exit:
                     self.assertRaises(Exception, daemonize)
 
         self.assertTrue(os_fork.called)
@@ -56,27 +56,36 @@ class LibUtilsTestCase(unittest.TestCase):
     def test_daemonize__not_exit(self):
         pid = 0
         fork_pid = 0
-        with patch('os.fork', Mock(side_effect=[pid, fork_pid])) as os_fork:
-            with patch('os.setsid', Mock()) as os_setsid:
-                with patch('os._exit', Mock()) as os_exit:
+        with patch('os.fork', side_effect=[pid, fork_pid]) as os_fork:
+            with patch('os.setsid') as os_setsid:
+                with patch('os._exit') as os_exit:
                     daemonize()
 
         self.assertEquals(os_fork.call_count, 2)
         os_setsid.assert_called_once_with()
         self.assertFalse(os_exit.called)
 
-    def test_load_config_from_pyfile(self):
+    def test_load_config_from_pyfile__upper_case(self):
         filepath = 'filepath/'
 
         def execfile(filepath, variables):
             variables['UPPER'] = {'key1': 1, 'key2': 'value2'}
-            variables['lower'] = 42
 
         with patch('__builtin__.execfile', side_effect=execfile):
             cfg = load_config_from_pyfile(filepath)
 
         self.assertEqual(cfg.UPPER, {'key1': 1, 'key2': 'value2'})
-        self.assertEqual(hasattr(cfg, 'lower_case'), False)
+
+    def test_load_config_from_pyfile__lower_case(self):
+        filepath = 'filepath/'
+
+        def execfile(filepath, variables):
+            variables['lower'] = 42
+
+        with patch('__builtin__.execfile', side_effect=execfile):
+            cfg = load_config_from_pyfile(filepath)
+
+        self.assertFalse(hasattr(cfg, 'lower_case'))
 
     def test_parse_cmd_args__abbr(self):
         cfg = '/conf'
@@ -101,8 +110,7 @@ class LibUtilsTestCase(unittest.TestCase):
         port = 80
         space = 'space'
         name = 'tube_name'
-        queue = MagicMock()
-        with patch('source.lib.utils.tarantool_queue.Queue', Mock(return_value=queue)) as Queue:
+        with patch('source.lib.utils.tarantool_queue.Queue') as Queue:
             get_tube(host, port, space, name)
         Queue.assert_called_once_with(host=host, port=port, space=space)
 
@@ -111,10 +119,10 @@ class LibUtilsTestCase(unittest.TestCase):
         target = Mock()
         args = ''
         parent_pid = 42
-        process = MagicMock()
+        process = Mock()
         process.daemon = False
         process.start = Mock()
-        with patch('source.lib.utils.Process', Mock(return_value=process)) as Process:
+        with patch('source.lib.utils.Process', return_value=process) as Process:
             spawn_workers(num, target, args, parent_pid)
 
         self.assertEquals(num, Process.call_count)
@@ -122,9 +130,9 @@ class LibUtilsTestCase(unittest.TestCase):
         self.assertTrue(process.daemon)
 
     def test_check_network_status__true(self):
-        with patch('urllib2.urlopen', Mock()):
+        with patch('urllib2.urlopen'):
             self.assertTrue(check_network_status('http://url.ru', 5))
 
     def test_check_network_status__false(self):
-        with patch('urllib2.urlopen', Mock(side_effect=[urllib2.URLError('error'), socket.error(), ValueError])):
+        with patch('urllib2.urlopen', side_effect=[urllib2.URLError('error'), socket.error(), ValueError]):
             self.assertFalse(check_network_status('http://url.ru', 5))

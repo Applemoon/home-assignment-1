@@ -178,7 +178,6 @@ def get_redirect_history(url, timeout, max_redirects=30, user_agent=None):
             break
 
     counters = get_counters(content) if content else []
-
     return history_types, history_urls, counters
 
 
@@ -193,7 +192,7 @@ def prepare_url(url):
     try:
         netloc = netloc.encode('idna')
     except UnicodeError:
-        raise
+        pass
     path = quote(to_str(path, 'ignore'), safe='/%+$!*\'(),')
     qs = quote_plus(to_str(qs, 'ignore'), safe=':&%=+$!*\'(),')
     return urlunparse((scheme, netloc, path, qs, anchor, fragments))
