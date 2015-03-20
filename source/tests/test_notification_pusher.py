@@ -207,16 +207,18 @@ class NotificationPusherTestCase(unittest.TestCase):
 
     def test_load_config_from_pyfile(self):
         filepath = 'filepath/'
+        test_dict = {'key1': 1, 'key2': 'value2'}
+        lower_key_name = 'lower'
 
         def my_execfile(filepath, variables):
-            variables['UPPER'] = {'key1': 1, 'key2': 'value2'}
-            variables['lower'] = 42
+            variables['UPPER'] = test_dict
+            variables[lower_key_name] = 42
 
         with patch('__builtin__.execfile', side_effect=my_execfile):
             cfg = load_config_from_pyfile(filepath)
 
-        self.assertEqual(cfg.UPPER, {'key1': 1, 'key2': 'value2'})
-        self.assertFalse(hasattr(cfg, 'lower_case'))
+        self.assertEqual(cfg.UPPER, test_dict)
+        self.assertFalse(hasattr(cfg, lower_key_name))
 
     def test_install_signal_handlers(self):
         with patch('source.notification_pusher.gevent.signal') as mock_signal:
