@@ -142,7 +142,7 @@ class NotificationPusherTestCase(unittest.TestCase):
 
         self.assertEqual(parsed_args.config, cfg)
         self.assertEqual(parsed_args.pidfile, pidfile)
-        parsed_args.daemon.assert_called_once_with()
+        self.assertTrue(parsed_args.daemon)
 
     def test_parse_cmd_args__full(self):
         cfg = '/conf'

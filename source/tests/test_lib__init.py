@@ -11,37 +11,30 @@ TIMEOUT = 5
 
 class LibInitTestCase(unittest.TestCase):
 
-    def side_effect(self):
-        return self
-
-    def to_code_side_effect(self, ignore):
-        return self
-
     def test_check_for_meta__meta_skip(self):
         content = """<nothing>"""
-        self.assertEquals(None, check_for_meta(content, 'http://first.com/'))
+        self.assertIsNone(check_for_meta(content, 'http://first.com/'))
 
     def test_check_for_meta__meta_exist_content_skip(self):
         content = """<meta/>"""
-        self.assertEquals(None, check_for_meta(content, 'http://first.com/'))
+        self.assertIsNone(check_for_meta(content, 'http://first.com/'))
 
     def test_check_for_meta__http_equiv_skip(self):
         content = """<meta content="5; url=http://second.com/"/>"""
-        self.assertEquals(None, check_for_meta(content, 'http://first.com/'))
+        self.assertIsNone(check_for_meta(content, 'http://first.com/'))
 
     def test_check_for_meta__http_equiv_not_refresh(self):
         content = """<meta Http-equiv=None" content="5; url=http://second.com/">"""
-        self.assertEquals(None, check_for_meta(content, 'http://first.com/'))
+        self.assertIsNone(check_for_meta(content, 'http://first.com/'))
 
     def test_check_for_meta__content_splitter_not_equals_2(self):
         content = """<meta Http-equiv="Refresh" content="5">"""
-        self.assertEquals(None, check_for_meta(content, 'url'))
+        self.assertIsNone(check_for_meta(content, 'url'))
 
     def test_check_for_meta__incorrect_url(self):
         content = """<meta Http-equiv="Refresh" content="5; url is %$!@*">"""
-        self.assertEquals(None, check_for_meta(content, 'http://first.com/'))
+        self.assertIsNone(check_for_meta(content, 'http://first.com/'))
 
-    @patch('source.lib.to_unicode', Mock(side_effect=to_code_side_effect))
     def test_check_for_meta__ok(self):
         this_url = 'http://url.ru'
         redirect_url = 'http://redirect-url.ru'
@@ -69,95 +62,89 @@ class LibInitTestCase(unittest.TestCase):
         return_counters = get_counters(content)
         self.assertEquals([], return_counters)
 
-    @patch('source.lib.prepare_url', Mock(side_effect=side_effect))
     def test_get_redirect_history__mm_url(self):
         mm_url = 'https://my.mail.ru/apps/'
-        history_types, history_urls, return_counters = get_redirect_history(mm_url, TIMEOUT)
+        with patch('source.lib.prepare_url', return_value=mm_url):
+            history_types, history_urls, return_counters = get_redirect_history(mm_url, TIMEOUT)
 
         self.assertEquals([], history_types)
         self.assertEquals([mm_url], history_urls)
         self.assertEquals([], return_counters)
 
-    @patch('source.lib.prepare_url', Mock(side_effect=side_effect))
     def test_get_redirect_history__ok_url(self):
         ok_url = 'https://www.odnoklassniki.ru/'
-        history_types, history_urls, return_counters = get_redirect_history(ok_url, TIMEOUT)
+        with patch('source.lib.prepare_url', return_value=ok_url):
+            history_types, history_urls, return_counters = get_redirect_history(ok_url, TIMEOUT)
 
         self.assertEquals([], history_types)
         self.assertEquals([ok_url], history_urls)
         self.assertEquals([], return_counters)
 
-    @patch('source.lib.prepare_url', Mock(side_effect=side_effect))
     def test_get_redirect_history__not_redirect_url(self):
         none_url = ''
-        history_types, history_urls, return_counters = get_redirect_history(none_url, TIMEOUT)
+        with patch('source.lib.prepare_url', return_value=none_url):
+            history_types, history_urls, return_counters = get_redirect_history(none_url, TIMEOUT)
 
         self.assertEquals([], history_types)
         self.assertEquals([''], history_urls)
         self.assertEquals([], return_counters)
 
-    @patch('source.lib.prepare_url', Mock(side_effect=side_effect))
     def test_get_redirect_history__not_redirect_url_with_content(self):
         counters = 'counters'
-        with patch('source.lib.get_url', Mock(return_value=[None, None, 'content'])):
-            with patch('source.lib.get_counters', Mock(return_value='counters')):
+        with patch('source.lib.get_url', return_value=[None, None, 'content']):
+            with patch('source.lib.get_counters', return_value='counters'):
                 history_types, history_urls, return_counters = get_redirect_history(URL, TIMEOUT)
 
                 self.assertEquals([], history_types)
                 self.assertEquals([URL], history_urls)
                 self.assertEquals(counters, return_counters)
 
-    @patch('source.lib.prepare_url', Mock(side_effect=side_effect))
     def test_get_redirect_history__redirect_type_error(self):
         type_error = 'ERROR'
         redirect_url = 'http://redirect-url.ru'
-        with patch('source.lib.get_url', Mock(return_value=[redirect_url, type_error, 'content'])):
+        with patch('source.lib.get_url', return_value=[redirect_url, type_error, 'content']):
             history_types, history_urls, return_counters = get_redirect_history(URL, TIMEOUT, 1)
 
             self.assertEquals([type_error], history_types)
             self.assertEquals([URL, redirect_url], history_urls)
             self.assertEquals([], return_counters)
 
-    @patch('source.lib.prepare_url', Mock(side_effect=side_effect))
     def test_get_redirect_history__redirect_url_in_history_urls(self):
         redirect_type = 'redirect_type'
-        with patch('source.lib.get_url', Mock(return_value=[URL, redirect_type, 'content'])):
+        with patch('source.lib.get_url', return_value=[URL, redirect_type, 'content']):
             history_types, history_urls, return_counters = get_redirect_history(URL, TIMEOUT)
 
             self.assertEquals([redirect_type], history_types)
             self.assertEquals([URL, URL], history_urls)
             self.assertEquals([], return_counters)
 
-    @patch('source.lib.prepare_url', Mock(side_effect=side_effect))
     def test_get_redirect_history__max_redirects(self):
         redirect_type = 'redirect_type'
         redirect_url = 'http://redirect-url.ru'
-        with patch('source.lib.get_url', Mock(return_value=[redirect_url, redirect_type, 'content'])):
+        with patch('source.lib.get_url', return_value=[redirect_url, redirect_type, 'content']):
             history_types, history_urls, return_counters = get_redirect_history(URL, TIMEOUT, 0)
 
             self.assertEquals([redirect_type], history_types)
             self.assertEquals([URL, redirect_url], history_urls)
             self.assertEquals([], return_counters)
 
-    @patch('source.lib.prepare_url', Mock(side_effect=side_effect))
     def test_get_redirect_history__redirect_url_in_history_urls_with_content(self):
         redirect_type = 'redirect_type'
         counters = 'counters'
-        with patch('source.lib.get_url', Mock(return_value=[URL, redirect_type, 'content'])):
-            with patch('source.lib.get_counters', Mock(return_value=counters)):
+        with patch('source.lib.get_url', return_value=[URL, redirect_type, 'content']):
+            with patch('source.lib.get_counters', return_value=counters):
                 history_types, history_urls, return_counters = get_redirect_history(URL, TIMEOUT)
 
                 self.assertEquals([redirect_type], history_types)
                 self.assertEquals([URL, URL], history_urls)
                 self.assertEquals(counters, return_counters)
 
-    @patch('source.lib.prepare_url', Mock(side_effect=side_effect))
     def test_get_redirect_history__max_redirects_with_content(self):
         redirect_type = 'redirect_type'
         redirect_url = 'http://redirect-url.ru'
         counters = 'counters'
-        with patch('source.lib.get_url', Mock(return_value=[redirect_url, redirect_type, 'content'])):
-            with patch('source.lib.get_counters', Mock(return_value=counters)):
+        with patch('source.lib.get_url', return_value=[redirect_url, redirect_type, 'content']):
+            with patch('source.lib.get_counters', return_value=counters):
                 history_types, history_urls, return_counters = get_redirect_history(URL, TIMEOUT, 0)
 
                 self.assertEquals([redirect_type], history_types)
@@ -166,110 +153,129 @@ class LibInitTestCase(unittest.TestCase):
 
     def test_get_url__not_redirect(self):
         not_redirect_url = 'http://odnoklassniki.ru/redirect-url/st.redirect'
-        with patch("source.lib.make_pycurl_request",
-                        Mock(return_value=['content', not_redirect_url])):
+        with patch("source.lib.make_pycurl_request", return_value=['content', not_redirect_url]):
             redirect_url, redirect_type, return_content = get_url(URL, TIMEOUT)
 
-        self.assertEquals(None, redirect_url)
-        self.assertEquals(None, redirect_type)
+        self.assertIsNone(redirect_url)
+        self.assertIsNone(redirect_type)
         self.assertEquals('content', return_content)
 
-    @patch('source.lib.prepare_url', Mock(side_effect=side_effect))
     def test_get_url__new_redirect_url(self):
         new_redirect_url = 'http://odnoklassniki.ru/redirect-url/'
-        with patch('source.lib.make_pycurl_request',
-                        Mock(return_value=['content', new_redirect_url])):
+        with patch('source.lib.make_pycurl_request', return_value=['content', new_redirect_url]):
             redirect_url, redirect_type, return_content = get_url(URL, TIMEOUT)
 
-            self.assertEquals(new_redirect_url, redirect_url)
+            self.assertEquals(prepare_url(new_redirect_url), redirect_url)
             self.assertEquals(REDIRECT_HTTP, redirect_type)
             self.assertEquals('content', return_content)
 
-    @patch('source.lib.prepare_url', Mock(side_effect=side_effect))
     def test_get_url__redirect_none_after_check_for_meta(self):
         none_url = None
-        with patch('source.lib.make_pycurl_request',
-                        Mock(return_value=['content', none_url])):
-            with patch('source.lib.check_for_meta', Mock(return_value=none_url)):
+        with patch('source.lib.make_pycurl_request', return_value=['content', none_url]):
+            with patch('source.lib.check_for_meta', return_value=none_url):
                 redirect_url, redirect_type, return_content = get_url(URL, TIMEOUT)
 
-                self.assertEquals(None, redirect_url)
-                self.assertEquals(None, redirect_type)
+                self.assertIsNone(prepare_url(redirect_url))
+                self.assertIsNone(redirect_type)
                 self.assertEquals('content', return_content)
 
-    @patch('source.lib.prepare_url', Mock(side_effect=side_effect))
     def test_get_url__redirect_not_none_after_check_for_meta(self):
         none_url = None
         new_redirect_url = 'http://odnoklassniki.ru/redirect-url/'
-        with patch('source.lib.make_pycurl_request',
-                        Mock(return_value=['content', none_url])):
-            with patch('source.lib.check_for_meta', Mock(return_value=new_redirect_url)):
+        with patch('source.lib.make_pycurl_request', return_value=['content', none_url]):
+            with patch('source.lib.check_for_meta', return_value=new_redirect_url):
                 redirect_url, redirect_type, return_content = get_url(URL, TIMEOUT)
 
-                self.assertEquals(new_redirect_url, redirect_url)
+                self.assertEquals(prepare_url(new_redirect_url), redirect_url)
                 self.assertEquals(REDIRECT_META, redirect_type)
                 self.assertEquals('content', return_content)
 
-    @patch('source.lib.prepare_url', Mock(side_effect=side_effect))
     def test_get_url__redirect_market(self):
         market_redirect_url = 'market://bestOfTheBestUrl'
         fix_redirect_url = 'http://play.google.com/store/apps/bestOfTheBestUrl'
-        with patch('source.lib.make_pycurl_request',
-                        Mock(return_value=['content', market_redirect_url])):
-                with patch('source.lib.fix_market_url', Mock(return_value=fix_redirect_url)):
+        with patch('source.lib.make_pycurl_request', return_value=['content', market_redirect_url]):
+                with patch('source.lib.fix_market_url', return_value=fix_redirect_url):
                     redirect_url, redirect_type, return_content = get_url(URL, TIMEOUT)
 
-                    self.assertEquals(fix_redirect_url, redirect_url)
+                    self.assertEquals(prepare_url(fix_redirect_url), redirect_url)
                     self.assertEquals(REDIRECT_HTTP, redirect_type)
                     self.assertEquals('content', return_content)
 
-    @patch('source.lib.prepare_url', Mock(side_effect=side_effect))
     def test_get_url__redirect_market_after_check_for_meta(self):
         market_redirect_url = 'market://bestOfTheBestUrl'
         fix_redirect_url = 'http://play.google.com/store/apps/bestOfTheBestUrl'
         none_url = None
-        with patch('source.lib.make_pycurl_request',
-                        Mock(return_value=['content', none_url])):
-            with patch('source.lib.check_for_meta', Mock(return_value=market_redirect_url)):
-                with patch('source.lib.fix_market_url', Mock(return_value=fix_redirect_url)):
+        with patch('source.lib.make_pycurl_request', return_value=['content', none_url]):
+            with patch('source.lib.check_for_meta', return_value=market_redirect_url):
+                with patch('source.lib.fix_market_url', return_value=fix_redirect_url):
                     redirect_url, redirect_type, return_content = get_url(URL, TIMEOUT)
 
-                    self.assertEquals(fix_redirect_url, redirect_url)
+                    self.assertEquals(prepare_url(fix_redirect_url), redirect_url)
                     self.assertEquals(REDIRECT_META, redirect_type)
                     self.assertEquals('content', return_content)
 
     def test_get_url__exception(self):
-        with patch('source.lib.make_pycurl_request',
-                        Mock(return_value=['content'])):
+        with patch('source.lib.make_pycurl_request', return_value=['content']):
             redirect_url, redirect_type, return_content = get_url(URL, TIMEOUT)
 
         self.assertEquals(URL, redirect_url)
         self.assertEquals('ERROR', redirect_type)
-        self.assertEquals(None, return_content)
+        self.assertIsNone(return_content)
 
-    @patch('source.lib.to_str', Mock(side_effect=to_code_side_effect))
-    def test_make_pycurl_request__redirect_url(self):
+    def test_make_pycurl_request__redirect_url_without_user_agent(self):
         buff = Mock()
-        buff.getvalue = Mock(return_value='content')
+        buff.getvalue.return_value = 'content'
         curl = Mock()
         redirect_url = 'http://redirect-url.ru'
-        curl.getinfo = Mock(return_value=redirect_url)
-        with patch('source.lib.StringIO', Mock(return_value=buff)):
-            with patch('pycurl.Curl', Mock(return_value=curl)):
-                self.assertEquals(('content', redirect_url), make_pycurl_request(URL, TIMEOUT))
-                self.assertEquals(('content', redirect_url), make_pycurl_request(URL, TIMEOUT, 'useragent'))
+        curl.getinfo.return_value = redirect_url
+        with patch('source.lib.StringIO', return_value=buff):
+            with patch('pycurl.Curl', return_value=curl):
+                result_content, result_redirect_url = make_pycurl_request(URL, TIMEOUT)
+                self.assertEquals('content', result_content)
+                self.assertEquals(redirect_url, result_redirect_url)
+                self.assertEqual(curl.setopt.call_count, 4)
 
-    @patch('source.lib.to_str', Mock(side_effect=to_code_side_effect))
-    def test_make_pycurl_request__redirect_url_none(self):
+    def test_make_pycurl_request__redirect_url_with_user_agent(self):
+        buff = Mock()
+        buff.getvalue.return_value = 'content'
+        curl = Mock()
+        redirect_url = 'http://redirect-url.ru'
+        curl.getinfo.return_value = redirect_url
+        with patch('source.lib.StringIO', return_value=buff):
+            with patch('pycurl.Curl', return_value=curl):
+                result_content, result_redirect_url = make_pycurl_request(URL, TIMEOUT, 'useragent')
+                self.assertEquals('content', result_content)
+                self.assertEquals(redirect_url, result_redirect_url)
+                self.assertEqual(curl.setopt.call_count, 5)
+
+    def test_make_pycurl_request__redirect_url_none_without_user_agent(self):
+
         url_none = None
         buff = Mock()
-        buff.getvalue = Mock(return_value='content')
+        buff.getvalue.return_value='content'
         curl = Mock()
-        curl.getinfo = Mock(return_value=url_none)
-        with patch('source.lib.StringIO', Mock(return_value=buff)):
-            with patch('pycurl.Curl', Mock(return_value=curl)):
-                self.assertEquals(('content', url_none), make_pycurl_request(URL, TIMEOUT))
-                self.assertEquals(('content', url_none), make_pycurl_request(URL, TIMEOUT, 'useragent'))
+        curl.getinfo.return_value=url_none
+        with patch('source.lib.StringIO', return_value=buff):
+            with patch('pycurl.Curl', return_value=curl):
+                with patch('pycurl.Curl', return_value=curl):
+                    result_content, result_redirect_url = make_pycurl_request(URL, TIMEOUT)
+                    self.assertEquals('content', result_content)
+                    self.assertEquals(url_none, result_redirect_url)
+                    self.assertEqual(curl.setopt.call_count, 4)
+
+    def test_make_pycurl_request__redirect_url_none_with_user_agent(self):
+
+        url_none = None
+        buff = Mock()
+        buff.getvalue.return_value='content'
+        curl = Mock()
+        curl.getinfo.return_value=url_none
+        with patch('source.lib.StringIO', return_value=buff):
+            with patch('pycurl.Curl', return_value=curl):
+                result_content, result_redirect_url = make_pycurl_request(URL, TIMEOUT, 'useragent')
+                self.assertEquals('content', result_content)
+                self.assertEquals(url_none, result_redirect_url)
+                self.assertEqual(curl.setopt.call_count, 5)
 
     def test_prepare_url__none_url(self):
         none_url = None
@@ -289,19 +295,31 @@ class LibInitTestCase(unittest.TestCase):
         url_path_result = 'http://netloc/%20p%20a%20t%20h%20;parameters?query=argument#fragment'
         self.assertEquals(url_path_result, prepare_url(url_path_raw))
 
-    def test_prepare_url__encode_exception(self):
+    def test_prepare_url__encode_exception_done_nothing(self):
         url_bad_netloc = 'http://.netloc/path;parameters?query=argument#fragment'
-        with self.assertRaises(UnicodeError):
-            prepare_url(url_bad_netloc)
+        result = prepare_url(url_bad_netloc)
+        self.assertEquals(url_bad_netloc, result)
 
-    def test_to_unicode__from_unicode(self):
+    def test_to_unicode__from_unicode_equals(self):
+        self.assertEquals(to_unicode(u'unicode'), u'unicode')
+
+    def test_to_unicode__from_unicode_instance(self):
         self.assertIsInstance(to_unicode(u'unicode'), unicode)
 
-    def test_to_unicode__from_str(self):
+    def test_to_unicode__from_str_equals(self):
+        self.assertEquals(to_unicode('str'), 'str')
+
+    def test_to_unicode__from_str_instance(self):
         self.assertIsInstance(to_unicode('str'), unicode)
 
-    def test_to_str__from_unicode(self):
+    def test_to_str__from_unicode_equals(self):
+        self.assertEquals(to_str(u'unicode'), u'unicode')
+
+    def test_to_str__from_unicode_exist(self):
         self.assertIsInstance(to_str(u'unicode'), str)
 
-    def test_to_str__from_str(self):
+    def test_to_str__from_str_equals(self):
+        self.assertEquals(to_str('str'), 'str')
+
+    def test_to_str__from_str_exist(self):
         self.assertIsInstance(to_str('str'), str)
