@@ -1,6 +1,5 @@
 *.py[cod]
 .coverage
-.coveragerc
 
 .vagrant/
 htmlcov/

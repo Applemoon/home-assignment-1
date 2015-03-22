@@ -7,7 +7,7 @@ from tarantool_queue import tarantool_queue
 from mock import Mock, patch, mock_open
 from gevent import queue as gevent_queue
 from source.notification_pusher import notification_worker, daemonize, done_with_processed_tasks, \
-    install_signal_handlers, load_config_from_pyfile, parse_cmd_args, create_pidfile
+    install_signal_handlers, load_config_from_pyfile, parse_cmd_args, create_pidfile, main, init
 
 MAGIC_NUMBER = 42
 
@@ -91,7 +91,7 @@ class NotificationPusherTestCase(unittest.TestCase):
         self.assertEqual(source.notification_pusher.exit_code,
                          source.notification_pusher.SIGNAL_EXIT_CODE_OFFSET + signum)
 
-    def test_main_loop(self):
+    def init_config(self):
         config = source.notification_pusher.Config()
         config.QUEUE_HOST = MAGIC_NUMBER
         config.QUEUE_PORT = MAGIC_NUMBER
@@ -101,38 +101,72 @@ class NotificationPusherTestCase(unittest.TestCase):
         config.QUEUE_TAKE_TIMEOUT = 0
         config.SLEEP = 0
         config.HTTP_CONNECTION_TIMEOUT = 0
+        return config
 
-        source.notification_pusher.tarantool_queue = Mock(spec=tarantool_queue)
-        source.notification_pusher.sleep = Mock(side_effect=app_stop)
-        source.notification_pusher.run_application = True
+    @patch('source.notification_pusher.tarantool_queue', Mock(spec=tarantool_queue))
+    @patch('source.notification_pusher.sleep', Mock(side_effect=app_stop))
+    def test_main_loop(self):
+        config = self.init_config()
         mock_pool = Mock()
         mock_pool().free_count.return_value = 1
 
         with patch('source.notification_pusher.Pool', mock_pool):
-            source.notification_pusher.main_loop(config)
+            with patch('source.notification_pusher.run_application', True):
+                with patch('source.notification_pusher.Greenlet') as mock_greenlet:
+                    source.notification_pusher.main_loop(config)
 
-        mock_pool().free_count.assert_called_once_with()
+        self.assertEqual(mock_greenlet.call_count, 1)
+        self.assertEqual(mock_greenlet().start.call_count, 1)
 
+    @patch('source.notification_pusher.tarantool_queue', Mock(spec=tarantool_queue))
+    @patch('source.notification_pusher.sleep', Mock(side_effect=app_stop))
     def test_main_loop_false(self):
-        config = source.notification_pusher.Config()
-        config.QUEUE_HOST = MAGIC_NUMBER
-        config.QUEUE_PORT = MAGIC_NUMBER
-        config.QUEUE_SPACE = MAGIC_NUMBER
-        config.QUEUE_TUBE = 'test'
-        config.WORKER_POOL_SIZE = 2
-        config.QUEUE_TAKE_TIMEOUT = 0
-        config.SLEEP = 0
-
-        source.notification_pusher.tarantool_queue = Mock(spec=tarantool_queue)
-        source.notification_pusher.sleep = Mock(side_effect=app_stop)
-        source.notification_pusher.run_application = False
+        config = self.init_config()
         mock_pool = Mock()
         mock_pool().free_count.return_value = 1
 
         with patch('source.notification_pusher.Pool', mock_pool):
-            source.notification_pusher.main_loop(config)
+            with patch('source.notification_pusher.run_application', False):
+                with patch('source.notification_pusher.Greenlet') as mock_greenlet:
+                    source.notification_pusher.main_loop(config)
 
-        self.assertFalse(mock_pool().free_count.called)
+        self.assertFalse(mock_greenlet.called)
+        self.assertFalse(mock_greenlet().start.called)
+
+    @patch('source.notification_pusher.sleep', Mock(side_effect=app_stop))
+    def test_main_loop_empty(self):
+        config = self.init_config()
+        mock_pool = Mock()
+        mock_pool().free_count.return_value = 0
+
+        with patch('source.notification_pusher.Pool', mock_pool):
+            with patch('source.notification_pusher.run_application', True):
+                with patch('source.notification_pusher.Greenlet') as mock_greenlet:
+                    with patch('source.notification_pusher.tarantool_queue',
+                               Mock(spec=tarantool_queue)) as mock_tarantool_queue:
+                        source.notification_pusher.main_loop(config)
+
+        self.assertFalse(mock_tarantool_queue.Queue().tube().take.called)
+        self.assertFalse(mock_greenlet.called)
+        self.assertFalse(mock_greenlet().start.called)
+
+    @patch('source.notification_pusher.sleep', Mock(side_effect=app_stop))
+    def test_main_loop_no_task(self):
+        config = self.init_config()
+        mock_pool = Mock()
+        mock_pool().free_count.return_value = 1
+        mock_tarantool_queue = Mock(spec=tarantool_queue)
+        mock_tarantool_queue.Queue().tube().take.return_value = False
+
+        with patch('source.notification_pusher.Pool', mock_pool):
+            with patch('source.notification_pusher.run_application', True):
+                with patch('source.notification_pusher.Greenlet') as mock_greenlet:
+                    with patch('source.notification_pusher.tarantool_queue', mock_tarantool_queue):
+                        source.notification_pusher.main_loop(config)
+
+        mock_tarantool_queue.Queue().tube().take.assert_called_once_with(config.QUEUE_TAKE_TIMEOUT)
+        self.assertFalse(mock_greenlet.called)
+        self.assertFalse(mock_greenlet().start.called)
 
     def test_parse_cmd_args__abbr(self):
         cfg = '/conf'
@@ -239,42 +273,74 @@ class NotificationPusherTestCase(unittest.TestCase):
         m_open.assert_called_once_with(pidfile, 'w')
         m_open().write.assert_called_once_with(str(pid))
 
-    @patch('source.notification_pusher.parse_cmd_args', Mock(return_value=Mock(daemon=True, pidfile=True)))
-    @patch('source.notification_pusher.main_loop', Mock(side_effect=app_stop))
-    @patch('source.notification_pusher.create_pidfile')
     @patch('source.notification_pusher.daemonize')
-    def test_main__ok(self, mock_daemonize, mock_create_pidfile):
+    @patch('source.notification_pusher.dictConfig')
+    def test_init(self, mock_dict_config, mock_daemonize):
+        args = Mock(daemon=False, pidfile=False)
         config = source.notification_pusher.Config()
         config.LOGGING = Mock()
+        m_open = mock_open()
 
-        with patch('source.notification_pusher.load_config_from_pyfile', Mock(return_value=config)):
-            with patch('source.notification_pusher.os.path'):
-                with patch('source.notification_pusher.patch_all'):
-                    with patch('source.notification_pusher.dictConfig'):
-                        exit_code = source.notification_pusher.main(list())
+        with patch('source.notification_pusher.open', m_open, create=True):
+            with patch('source.notification_pusher.load_config_from_pyfile', Mock(return_value=config)):
+                with patch('source.notification_pusher.os.path'):
+                    with patch('source.notification_pusher.create_pidfile') as mock_create_pidfile:
+                        result = init(args)
 
+        self.assertEqual(result, config)
+        self.assertFalse(mock_daemonize.called)
+        self.assertFalse(mock_create_pidfile.called)
+        mock_dict_config.assert_called_once_with(config.LOGGING)
+
+    @patch('source.notification_pusher.daemonize')
+    @patch('source.notification_pusher.dictConfig')
+    def test_init_with_daemonize_and_create_pidfile(self, mock_dict_config, mock_daemonize):
+        test_file = 'file'
+        args = Mock(daemon=True, pidfile=test_file)
+        config = source.notification_pusher.Config()
+        config.LOGGING = Mock()
+        m_open = mock_open()
+
+        with patch('source.notification_pusher.open', m_open, create=True):
+            with patch('source.notification_pusher.load_config_from_pyfile', Mock(return_value=config)):
+                with patch('source.notification_pusher.os.path'):
+                    with patch('source.notification_pusher.create_pidfile') as mock_create_pidfile:
+                        result = init(args)
+
+        self.assertEqual(result, config)
         mock_daemonize.assert_called_once_with()
-        mock_create_pidfile.assert_called_once_with(True)
+        mock_create_pidfile.assert_called_once_with(test_file)
+        mock_dict_config.assert_called_once_with(config.LOGGING)
+
+    @patch('source.notification_pusher.main_loop', Mock(side_effect=app_stop))
+    @patch('source.notification_pusher.init')
+    def test_main__ok(self, mock_init):
+        config = source.notification_pusher.Config()
+        config.LOGGING = Mock()
+        argv = list()
+
+        with patch('source.notification_pusher.parse_cmd_args',
+                   Mock(return_value=Mock(daemon=True, pidfile=True))) as mock_parse:
+            exit_code = main(argv)
+
         self.assertEquals(source.notification_pusher.exit_code, exit_code)
+        mock_init.assert_called_once_with(mock_parse(argv))
 
     @patch('source.notification_pusher.parse_cmd_args', Mock(return_value=Mock(daemon=True, pidfile=True)))
     @patch('source.notification_pusher.main_loop', Mock(side_effect=Exception))
-    @patch('source.notification_pusher.create_pidfile')
-    @patch('source.notification_pusher.daemonize')
-    def test_main__exception(self, mock_daemonize, mock_create_pidfile):
+    @patch('source.notification_pusher.init')
+    def test_main__exception(self, mock_init):
         config = source.notification_pusher.Config()
         config.LOGGING = Mock()
         config.SLEEP_ON_FAIL = 42
+        mock_init.return_value = config
+        argv = list()
 
-        with patch('source.notification_pusher.load_config_from_pyfile', Mock(return_value=config)):
-            with patch('source.notification_pusher.os.path'):
-                with patch('source.notification_pusher.patch_all'):
-                    with patch('source.notification_pusher.dictConfig'):
-                        with patch('source.notification_pusher.logger'):
-                            with patch('source.notification_pusher.sleep', Mock(side_effect=app_stop)) as mock_sleep:
-                                exit_code = source.notification_pusher.main(list())
+        with patch('source.notification_pusher.parse_cmd_args',
+                   Mock(return_value=Mock(daemon=True, pidfile=True))) as mock_parse:
+            with patch('source.notification_pusher.sleep', Mock(side_effect=app_stop)) as mock_sleep:
+                exit_code = main(argv)
 
-        mock_daemonize.assert_called_once_with()
-        mock_create_pidfile.assert_called_once_with(True)
         mock_sleep.assert_called_once_with(config.SLEEP_ON_FAIL)
         self.assertEquals(source.notification_pusher.exit_code, exit_code)
+        mock_init.assert_called_once_with(mock_parse(argv))

@@ -287,17 +287,7 @@ def create_pidfile(pidfile_path):
         f.write(pid)
 
 
-def main(argv):
-    """
-    Точка входа в приложение.
-
-    В случае возникновения ошибки в приложении, оно засыпает на config.SLEEP_ON_FAIL секунд.
-
-    :param argv: агрументы командной строки.
-    :type argv: list
-    """
-    args = parse_cmd_args(argv[1:])
-
+def init(args):
     if args.daemon:
         daemonize()
 
@@ -309,12 +299,23 @@ def main(argv):
     )
 
     patch_all()
-
     dictConfig(config.LOGGING)
-
     current_thread().name = 'pusher.main'
-
     install_signal_handlers()
+    return config
+
+
+def main(argv):
+    """
+    Точка входа в приложение.
+
+    В случае возникновения ошибки в приложении, оно засыпает на config.SLEEP_ON_FAIL секунд.
+
+    :param argv: агрументы командной строки.
+    :type argv: list
+    """
+
+    config = init(parse_cmd_args(argv[1:]))
 
     while run_application:
         try:
