@@ -90,9 +90,10 @@ class LibInitTestCase(unittest.TestCase):
         self.assertEquals([], return_counters)
 
     def test_get_redirect_history__not_redirect_url_with_content(self):
-        counters = 'counters'
-        with patch('source.lib.get_url', return_value=[None, None, 'content']):
-            with patch('source.lib.get_counters', return_value='counters'):
+        content = 'mc.yandex.ru/metrika/watch.js google-analytics.com/ga.js'
+        counters = ['GOOGLE_ANALYTICS', 'YA_METRICA']
+        with patch('source.lib.get_url', return_value=[None, None, content]):
+            with patch('source.lib.get_counters', return_value=counters):
                 history_types, history_urls, return_counters = get_redirect_history(URL, TIMEOUT)
 
                 self.assertEquals([], history_types)
@@ -129,9 +130,10 @@ class LibInitTestCase(unittest.TestCase):
             self.assertEquals([], return_counters)
 
     def test_get_redirect_history__redirect_url_in_history_urls_with_content(self):
+        content = 'mc.yandex.ru/metrika/watch.js google-analytics.com/ga.js'
+        counters = ['GOOGLE_ANALYTICS', 'YA_METRICA']
         redirect_type = 'redirect_type'
-        counters = 'counters'
-        with patch('source.lib.get_url', return_value=[URL, redirect_type, 'content']):
+        with patch('source.lib.get_url', return_value=[URL, redirect_type, content]):
             with patch('source.lib.get_counters', return_value=counters):
                 history_types, history_urls, return_counters = get_redirect_history(URL, TIMEOUT)
 
@@ -140,10 +142,11 @@ class LibInitTestCase(unittest.TestCase):
                 self.assertEquals(counters, return_counters)
 
     def test_get_redirect_history__max_redirects_with_content(self):
+        content = 'mc.yandex.ru/metrika/watch.js google-analytics.com/ga.js'
+        counters = ['GOOGLE_ANALYTICS', 'YA_METRICA']
         redirect_type = 'redirect_type'
         redirect_url = 'http://redirect-url.ru'
-        counters = 'counters'
-        with patch('source.lib.get_url', return_value=[redirect_url, redirect_type, 'content']):
+        with patch('source.lib.get_url', return_value=[redirect_url, redirect_type, content]):
             with patch('source.lib.get_counters', return_value=counters):
                 history_types, history_urls, return_counters = get_redirect_history(URL, TIMEOUT, 0)
 
@@ -222,6 +225,19 @@ class LibInitTestCase(unittest.TestCase):
         self.assertEquals('ERROR', redirect_type)
         self.assertIsNone(return_content)
 
+    def test_make_pycurl_request__set_opt_timeout(self):
+        buff = Mock()
+        buff.getvalue.return_value = 'content'
+        curl = Mock()
+        redirect_url = 'http://redirect-url.ru'
+        curl.getinfo.return_value = redirect_url
+        with patch('source.lib.StringIO', return_value=buff):
+            with patch('pycurl.Curl', return_value=curl):
+                result_content, result_redirect_url = make_pycurl_request(URL, TIMEOUT)
+                curl.setopt.assert_not_any_call(curl.TIMEOUT, TIMEOUT)
+                self.assertEquals('content', result_content)
+                self.assertEquals(redirect_url, result_redirect_url)
+
     def test_make_pycurl_request__redirect_url_without_user_agent(self):
         buff = Mock()
         buff.getvalue.return_value = 'content'
@@ -231,9 +247,9 @@ class LibInitTestCase(unittest.TestCase):
         with patch('source.lib.StringIO', return_value=buff):
             with patch('pycurl.Curl', return_value=curl):
                 result_content, result_redirect_url = make_pycurl_request(URL, TIMEOUT)
+                curl.setopt.assert_not_any_call(curl.USERAGENT, 'user_agent')
                 self.assertEquals('content', result_content)
                 self.assertEquals(redirect_url, result_redirect_url)
-                self.assertEqual(curl.setopt.call_count, 4)
 
     def test_make_pycurl_request__redirect_url_with_user_agent(self):
         buff = Mock()
@@ -243,12 +259,12 @@ class LibInitTestCase(unittest.TestCase):
         curl.getinfo.return_value = redirect_url
         with patch('source.lib.StringIO', return_value=buff):
             with patch('pycurl.Curl', return_value=curl):
-                result_content, result_redirect_url = make_pycurl_request(URL, TIMEOUT, 'useragent')
+                result_content, result_redirect_url = make_pycurl_request(URL, TIMEOUT, 'user_agent')
+                curl.setopt.assert_any_call(curl.USERAGENT, 'user_agent')
                 self.assertEquals('content', result_content)
                 self.assertEquals(redirect_url, result_redirect_url)
-                self.assertEqual(curl.setopt.call_count, 5)
 
-    def test_make_pycurl_request__redirect_url_none_without_user_agent(self):
+    def test_make_pycurl_request__redirect_url_none(self):
 
         url_none = None
         buff = Mock()
@@ -261,21 +277,6 @@ class LibInitTestCase(unittest.TestCase):
                     result_content, result_redirect_url = make_pycurl_request(URL, TIMEOUT)
                     self.assertEquals('content', result_content)
                     self.assertEquals(url_none, result_redirect_url)
-                    self.assertEqual(curl.setopt.call_count, 4)
-
-    def test_make_pycurl_request__redirect_url_none_with_user_agent(self):
-
-        url_none = None
-        buff = Mock()
-        buff.getvalue.return_value='content'
-        curl = Mock()
-        curl.getinfo.return_value=url_none
-        with patch('source.lib.StringIO', return_value=buff):
-            with patch('pycurl.Curl', return_value=curl):
-                result_content, result_redirect_url = make_pycurl_request(URL, TIMEOUT, 'useragent')
-                self.assertEquals('content', result_content)
-                self.assertEquals(url_none, result_redirect_url)
-                self.assertEqual(curl.setopt.call_count, 5)
 
     def test_prepare_url__none_url(self):
         none_url = None
@@ -300,26 +301,18 @@ class LibInitTestCase(unittest.TestCase):
         result = prepare_url(url_bad_netloc)
         self.assertEquals(url_bad_netloc, result)
 
-    def test_to_unicode__from_unicode_equals(self):
+    def test_to_unicode__from_unicode(self):
         self.assertEquals(to_unicode(u'unicode'), u'unicode')
-
-    def test_to_unicode__from_unicode_instance(self):
         self.assertIsInstance(to_unicode(u'unicode'), unicode)
 
-    def test_to_unicode__from_str_equals(self):
+    def test_to_unicode__from_str(self):
         self.assertEquals(to_unicode('str'), 'str')
-
-    def test_to_unicode__from_str_instance(self):
         self.assertIsInstance(to_unicode('str'), unicode)
 
-    def test_to_str__from_unicode_equals(self):
+    def test_to_str__from_unicode(self):
         self.assertEquals(to_str(u'unicode'), u'unicode')
-
-    def test_to_str__from_unicode_exist(self):
         self.assertIsInstance(to_str(u'unicode'), str)
 
-    def test_to_str__from_str_equals(self):
+    def test_to_str__from_str(self):
         self.assertEquals(to_str('str'), 'str')
-
-    def test_to_str__from_str_exist(self):
         self.assertIsInstance(to_str('str'), str)
